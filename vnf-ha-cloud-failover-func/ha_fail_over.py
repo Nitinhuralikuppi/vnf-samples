@@ -34,6 +34,7 @@ class HAFailOver(object):
     EXT_IP = "ext_ip"
     LOCATION_DEFAULT = "/tmp/vnf-ha-cloud-failover-func/"
     CONFIGFILE = "config.json"
+    ROUTING_TABLE = 'routing_table'
 
     apikey = None
     vpc_url = "https://us-east.iaas.cloud.ibm.com/v1"
@@ -50,6 +51,7 @@ class HAFailOver(object):
     ext_ip_1 = ''
     ext_ip_2 = ''
     logger = ''
+    routing_table = ''
 
     config_file = "config.json"
     version = "2022-09-13"
@@ -93,6 +95,9 @@ class HAFailOver(object):
                 if item == self.ZONE:
                     self.zone = config[self.ZONE]
                     #self.logger.info("zone " + self.zone)
+                if item == self.ROUTING_TABLE:
+                    self.routing_table = config[self.ROUTING_TBALE]
+                    self.logger.info("Routing Table Name " + self.routing_table)
                 if item == self.HA_PAIR:
                     self.ha_pair = config[self.HA_PAIR]
                     self.logger.info("ha pair " + json.dumps(self.ha_pair))
@@ -122,7 +127,7 @@ class HAFailOver(object):
         update_done = False
         for table in list_tables:
             print(table['id'], "\t",  table['name'])
-            if (table['name'] != 'ha-route-tbl'):
+            if (table['name'] != self.routing_table):
                 continue
             table_id_temp = table['id']
             list_routes = self.service.list_vpc_routing_table_routes(vpc_id= self.vpc_id, routing_table_id=table_id_temp)
