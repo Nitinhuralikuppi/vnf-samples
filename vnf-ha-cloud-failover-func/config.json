@@ -4,6 +4,7 @@
 "vpc_url": "",
 "vpc_id": "",
 "zone": "",
+"routing_table": "",
 "ha_pair":
 [
 	{
