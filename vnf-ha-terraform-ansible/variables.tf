@@ -77,3 +77,8 @@ variable "ha_password2" {
   default     = ""
   description = "HA instance2 Password."
 }
+
+variable "routing_table" {
+  default = ""
+  description = "Routing table name to float external IPs during failover"
+} 
