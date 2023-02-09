@@ -34,7 +34,7 @@ class HAFailOver(object):
     EXT_IP = "ext_ip"
     LOCATION_DEFAULT = "/tmp/vnf-ha-cloud-failover-func/"
     CONFIGFILE = "config.json"
-    ROUTING_TABLE = 'routing_table'
+    ROUTING_TABLE = "routing_table"
 
     apikey = None
     vpc_url = "https://us-east.iaas.cloud.ibm.com/v1"
@@ -68,9 +68,10 @@ class HAFailOver(object):
         self.logger.addHandler(loghandler)
         if self.apikey is None:
             self.parse_config_json()
-        authenticator = IAMAuthenticator(self.apikey, url='https://iam.cloud.ibm.com')
+        authenticator = IAMAuthenticator(self.apikey)
         self.service = VpcV1(authenticator=authenticator)
         self.service.set_service_url(self.vpc_url)
+        self.service = VpcV1(self.version, authenticator=authenticator) 
         self.logger.info("Initialized vpc service")
          
     def parse_config_json(self):
@@ -85,18 +86,18 @@ class HAFailOver(object):
             for item in config:
                 if item == self.APIKEY:
                     self.apikey = config[self.APIKEY]
-                    #self.logger.info("api key " + self.apikey)
+                    self.logger.info("api key " + self.apikey)
                 if item == self.VPC_ID:
                     self.vpc_id = config[self.VPC_ID]
-                    #self.logger.info("vpc id " + self.vpc_id)
+                    self.logger.info("vpc id " + self.vpc_id)
                 if item == self.VPC_URL:
                     self.vpc_url = config[self.VPC_URL]
-                    #self.logger.info("vpc url " + self.vpc_url)
+                    self.logger.info("vpc url " + self.vpc_url)
                 if item == self.ZONE:
                     self.zone = config[self.ZONE]
-                    #self.logger.info("zone " + self.zone)
+                    self.logger.info("zone " + self.zone)
                 if item == self.ROUTING_TABLE:
-                    self.routing_table = config[self.ROUTING_TBALE]
+                    self.routing_table = config[self.ROUTING_TABLE]
                     self.logger.info("Routing Table Name " + self.routing_table)
                 if item == self.HA_PAIR:
                     self.ha_pair = config[self.HA_PAIR]
@@ -105,10 +106,10 @@ class HAFailOver(object):
                     self.ext_ip_1 = config[self.HA_PAIR][0][self.EXT_IP]
                     self.mgmt_ip_2 = config[self.HA_PAIR][1][self.MGMT_IP]
                     self.ext_ip_2 = config[self.HA_PAIR][1][self.EXT_IP]
-                    #self.logger.info("mgmt_ip_1 " + self.mgmt_ip_1)
-                    #self.logger.info("mgmt_ip_2 " + self.mgmt_ip_2)
-                    #self.logger.info("ext_ip_1 " + self.ext_ip_1)
-                    #self.logger.info("ext_ip_2 " + self.ext_ip_2)
+                    self.logger.info("mgmt_ip_1 " + self.mgmt_ip_1)
+                    self.logger.info("mgmt_ip_2 " + self.mgmt_ip_2)
+                    self.logger.info("ext_ip_1 " + self.ext_ip_1)
+                    self.logger.info("ext_ip_2 " + self.ext_ip_2)
         except Exception as e:
             self.logger.info("Exception occurred while parsing config.json", e)
         # Closing file 
@@ -117,11 +118,12 @@ class HAFailOver(object):
             
     def update_vpc_routing_table_route(self):   
         self.logger.info("calling update vpc routing table route")    
-        #self.logger.info("vpc id " + self.vpc_id) 
+        self.logger.info("vpc id " + self.vpc_id) 
         list_tables = ''
         authenticator = IAMAuthenticator(self.apikey, url='https://iam.cloud.ibm.com')
         self.service = VpcV1(authenticator=authenticator)
-        self.service.set_service_url(self.vpc_url)
+        vpc_url = "https://us-east.iaas.cloud.ibm.com/v1"
+        self.service.set_service_url(vpc_url)
         if self.service.list_vpc_routing_tables(self.vpc_id).get_result() is not None:
             list_tables = self.service.list_vpc_routing_tables(self.vpc_id).get_result()['routing_tables']
         update_done = False
@@ -134,21 +136,22 @@ class HAFailOver(object):
             routes = list_routes.get_result()['routes']
             for route in routes:
                 route_id_temp = route['id']
-                #self.logger.info ("route id " + route['id'])
+                self.logger.info ("route id " + route['id'])
                 #self.logger.info ("route " + str(route['next_hop']))
                 #self.logger.info("next hop vsi " + self.next_hop_vsi)
-                if route['next_hop']['address'] == self.next_hop_vsi:
+                if route['next_hop']['address'] == self.next_hop_vsi: 
                     self.logger.info("vpc routing table routes found, id: %s, name: %s: " % (route['id'], route['name']))
                     self.logger.info("vpc routing table route, id: %s, name: %s, zone: %s, next_hop:%s, destination:%s " % (route['id'], route['name'], route['zone']['name'], route['next_hop']['address'], route['destination']))
                     zone_identity_model = {'name': route['zone']['name']}
                     route_next_hop_prototype_model = {'address': self.update_next_hop_vsi}
+                    #self.logger.info("***Next hop address*** " + route_next_hop_prototype_model)
                     # delete old route
                     self.service.delete_vpc_routing_table_route(vpc_id=self.vpc_id, routing_table_id=table_id_temp, id=route_id_temp)
-                    self.logger.info("Deleted route: " + route_id_temp)
+                    self.logger.info("Deleted route " + route_id_temp)
                     # create new route
                     create_vpc_routing_table_route_response = self.service.create_vpc_routing_table_route(vpc_id=self.vpc_id, routing_table_id=table_id_temp, destination=route['destination'], zone=zone_identity_model, action='deliver', next_hop=route_next_hop_prototype_model, name=route['name'])
                     route = create_vpc_routing_table_route_response.get_result()
-                    self.logger.info("Created route: " + route['id'])
+                    self.logger.info("Created route " + route['id'])
                     update_done = True
         return update_done       
             
@@ -160,7 +163,7 @@ class HAFailOver(object):
         for pair in temp_ha_pair: 
             print(pair[self.MGMT_IP])
             print(pair[self.EXT_IP])
-            if pair[self.MGMT_IP] == remote_addr:
+            #if pair[self.MGMT_IP] == remote_addr:
             if pair[self.EXT_IP] == remote_addr:
                 temp_ha_pair.remove(pair)
                 self.update_next_hop_vsi = pair[self.EXT_IP]
