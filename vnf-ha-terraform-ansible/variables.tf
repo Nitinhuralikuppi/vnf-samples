@@ -1,26 +1,26 @@
 variable "TF_VERSION" {
- default = "0.12"
+ default = "0.13"
  description = "terraform engine version to be used in schematics"
 }
 
-variable "generation" {
-  default     = 2
-  description = "The VPC Generation to target. Valid values are 2 or 1."
-}
-
 variable "region" {
-  default     = "us-south"
-  description = "The VPC Region that you want your VSI to be provisioned in. To list available regions, run `ibmcloud is regions`."
-}
-
-variable "IC_API_KEY" {
-  default     = ""
+  default     = "us-east"
   description = "The VPC Region that you want your VSI to be provisioned in. To list available regions, run `ibmcloud is regions`."
 }
 
 variable "rias_api_url" {
-  default     = "https://us-south.iaas.cloud.ibm.com/v1"
+  default     = "https://us-east.iaas.cloud.ibm.com/v1"
   description = "The public RIAS endpoint url of VPC. This is used by vpc sdk."
+}
+
+variable "vpc_id" {
+  default     = ""
+  description = "ID of the VPC where resources needs to be deployed"
+}
+
+variable "resource_group" {
+  default     = ""
+  description = "Resource group name where resources needs to be deployed"
 }
 
 variable "apikey" {
@@ -63,10 +63,16 @@ variable "ext_ip2" {
   description = "The external IP 2 of HA pair."
 }
 
-variable "vnf_mgmt_ipv4_cidr_block" {
+variable "vnf_ext_ipv4_cidr_block" {
   default     = ""
-  description = "VNF Management subnet ipv4 cidr block. Only this cidr block is allowed to access fail over function."
+  description = "VNF external subnet ipv4 cidr block. Only this cidr block is allowed to access fail over function."
 }
+
+variable "zone" {
+  default     = ""
+  description = "Zone for the Region Eg: us-east-1"
+}
+
 
 variable "ha_password1" {
   default     = ""
@@ -81,4 +87,4 @@ variable "ha_password2" {
 variable "routing_table" {
   default = ""
   description = "Routing table name to float external IPs during failover"
-} 
+}
