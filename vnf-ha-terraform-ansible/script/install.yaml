@@ -139,13 +139,13 @@
         msg: "Updating tgactive script ..."
 
     - name: copy update_script.sh to mgmt node
-      command: sshpass -p {{ item.hapwd }} scp -o StrictHostKeyChecking=no /tmp/vnf-ha-cloud-failover-func/update_script.sh root@{{ item.mgmtip }}:/config/failover/
+      command: sshpass -p {{ item.hapwd }} scp -o StrictHostKeyChecking=no /tmp/vnf-ha-cloud-failover-func/update_script.sh admin@{{ item.mgmtip }}:/config/failover/
       with_items:
         - { hapwd: "{{ ha1pwd }}", mgmtip: "{{ mgmtip1 }}" }
         - { hapwd: "{{ ha2pwd }}", mgmtip: "{{ mgmtip2 }}" }
 
     - name: Execute update_script.sh on mgmt node
-      command: sshpass -p {{ item.hapwd }} ssh -o StrictHostKeyChecking=no -l root {{ item.mgmtip }} "sh /config/failover/update_script.sh" {{ item.ipaddress }}
+      command: sshpass -p {{ item.hapwd }} ssh -o StrictHostKeyChecking=no -l admin {{ item.mgmtip }} "sh /config/failover/update_script.sh" {{ item.ipaddress }}
       with_items:
         - { hapwd: "{{ ha1pwd }}", mgmtip: "{{ mgmtip1 }}", ipaddress: "{{ ipaddress }}" }
         - { hapwd: "{{ ha2pwd }}", mgmtip: "{{ mgmtip2 }}", ipaddress: "{{ ipaddress }}" }

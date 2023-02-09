@@ -28,8 +28,7 @@ data "ibm_is_image" "custom_image" {
 # Provider block - Alias initialized tointeract with VNFSVC account
 ##############################################################################
 provider "ibm" {
-  ibmcloud_api_key = var.IC_API_KEY
-  generation       = var.generation
+  ibmcloud_api_key = var.apikey
   region           = var.region
   ibmcloud_timeout = 300
 }
@@ -39,7 +38,7 @@ provider "ibm" {
 ##############################################################################
 
 resource "ibm_is_security_group" "ubuntu_vsi_sg" {
-  name           = "ubuntu-vsi-sg-2"
+  name           = "ubuntu-vsi-nitin"
   vpc            = data.ibm_is_subnet.vnf_subnet.vpc
   resource_group = data.ibm_is_subnet.vnf_subnet.resource_group
 }
@@ -59,7 +58,7 @@ resource "ibm_is_security_group_rule" "ubuntu_sg_rule_tcp" {
   depends_on = [ibm_is_security_group_rule.ubuntu_sg_allow_ssh]
   group      = ibm_is_security_group.ubuntu_vsi_sg.id
   direction  = "inbound"
-  remote     = var.vnf_mgmt_ipv4_cidr_block
+  remote     = var.vnf_ext_ipv4_cidr_block
   // remote = "0.0.0.0/0"
   tcp {
     port_min = 3000
@@ -88,7 +87,7 @@ resource "ibm_is_security_group_rule" "ubuntu_sg_rule_all_out" {
 //source vsi
 resource "ibm_is_instance" "ubuntu_vsi" {
   depends_on     = [ibm_is_security_group_rule.ubuntu_sg_rule_all_out]
-  name           = "ubuntu-ha-vsi-2"
+  name           = "ubuntu-vsi-nitin"
   image          = data.ibm_is_image.custom_image.id
   profile        = "bx2-2x8"
   resource_group = data.ibm_is_subnet.vnf_subnet.resource_group
@@ -105,7 +104,7 @@ resource "ibm_is_instance" "ubuntu_vsi" {
 
 //floating ip for above VSI
 resource "ibm_is_floating_ip" "ubuntu_vsi_fip" {
-  name   = "ubuntu-vsi-fip-2"
+  name   = "ubuntu-vsi-fip"
   target = ibm_is_instance.ubuntu_vsi.primary_network_interface[0].id
 }
 
@@ -143,7 +142,7 @@ resource "null_resource" "ubuntu_ansible_provisioner" {
         extip1 = var.ext_ip1
         mgmtip2 = var.mgmt_ip2
         extip2 = var.ext_ip2
-        ipaddress = ibm_is_instance.ubuntu_vsi.primary_network_interface[0].primary_ipv4_address 
+        ipaddress = ibm_is_instance.ubuntu_vsi.primary_ip.[0].address 
         ha1pwd = var.ha_password1
         ha2pwd = var.ha_password2
       }
