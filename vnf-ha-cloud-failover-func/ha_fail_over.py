@@ -119,6 +119,7 @@ class HAFailOver(object):
     def update_vpc_routing_table_route(self):   
         self.logger.info("calling update vpc routing table route")    
         self.logger.info("vpc id " + self.vpc_id) 
+        self.logger.info("Routing Table Name " + self.routing_table)
         list_tables = ''
         authenticator = IAMAuthenticator(self.apikey, url='https://iam.cloud.ibm.com')
         self.service = VpcV1(authenticator=authenticator)
@@ -137,8 +138,8 @@ class HAFailOver(object):
             for route in routes:
                 route_id_temp = route['id']
                 self.logger.info ("route id " + route['id'])
-                #self.logger.info ("route " + str(route['next_hop']))
-                #self.logger.info("next hop vsi " + self.next_hop_vsi)
+                self.logger.info ("route " + str(route['next_hop']))
+                self.logger.info("next hop vsi " + self.next_hop_vsi)
                 if route['next_hop']['address'] == self.next_hop_vsi: 
                     self.logger.info("vpc routing table routes found, id: %s, name: %s: " % (route['id'], route['name']))
                     self.logger.info("vpc routing table route, id: %s, name: %s, zone: %s, next_hop:%s, destination:%s " % (route['id'], route['name'], route['zone']['name'], route['next_hop']['address'], route['destination']))
@@ -163,7 +164,6 @@ class HAFailOver(object):
         for pair in temp_ha_pair: 
             print(pair[self.MGMT_IP])
             print(pair[self.EXT_IP])
-            #if pair[self.MGMT_IP] == remote_addr:
             if pair[self.EXT_IP] == remote_addr:
                 temp_ha_pair.remove(pair)
                 self.update_next_hop_vsi = pair[self.EXT_IP]
