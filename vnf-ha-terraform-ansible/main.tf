@@ -112,51 +112,6 @@ resource "ibm_is_floating_ip" "ubuntu_vsi_fip" {
 # Provision the server using ansible-provisioner
 # ---------------------------------------------------------------------------------------------------------------------
 
-/*
-resource "null_resource" "ubuntu_ansible_provisioner" {
-  depends_on = [ibm_is_floating_ip.ubuntu_vsi_fip]
-
-  triggers = {
-    public_ip = ibm_is_floating_ip.ubuntu_vsi_fip.address
-  }
-
-  connection {
-    host = ibm_is_floating_ip.ubuntu_vsi_fip.address
-    user = "root"  
-    private_key = var.private_ssh_key
-  }
-
-  
-  provisioner "local-exec"  {
-    plays {
-      playbook {
-        file_path = "script/install.yaml"
-      }
-      verbose = true
-       extra_vars = {
-        vpcid = data.ibm_is_subnet.vnf_subnet.vpc
-        vpcurl = var.rias_api_url
-        zone = data.ibm_is_subnet.vnf_subnet.zone
-        apikey = var.apikey
-        mgmtip1 = var.mgmt_ip1
-        extip1 = var.ext_ip1
-        mgmtip2 = var.mgmt_ip2
-        extip2 = var.ext_ip2
-        ipaddress = ibm_is_instance.ubuntu_vsi.primary_ip.[0].address 
-        ha1pwd = var.ha_password1
-        ha2pwd = var.ha_password2
-      }
-    }
-
-    ansible_ssh_settings {
-      insecure_no_strict_host_key_checking = true
-      connect_timeout_seconds              = 60
-    }
-
-  }
-}
-*/
-
 resource "null_resource" "copy_file_provisioner" {
   depends_on = [ibm_is_floating_ip.ubuntu_vsi_fip]
   
@@ -184,6 +139,6 @@ resource "null_resource" "ubuntu_ansible_provisioner" {
 	    user = "root"
 	    private_key = file("./txt.txt")
 	  }  
-    command = "chmod 0600 txt.txt; ansible-playbook script/install.yaml -i hosts_file.txt --fork 1 --user root --private-key ./txt.txt -e 'vpcid=${data.ibm_is_subnet.vnf_subnet.vpc} vpcurl=${var.rias_api_url} zone=${data.ibm_is_subnet.vnf_subnet.zone} apikey=${var.apikey} mgmtip1=${var.mgmt_ip1} extip1=${var.ext_ip1} mgmtip2=${var.mgmt_ip2} extip2=${var.ext_ip2} ipaddress=${ibm_is_instance.ubuntu_vsi.primary_network_interface[0].primary_ipv4_address} ha1pwd=${var.ha_password1} ha2pwd=${var.ha_password2}'"
+    command = "chmod 0600 txt.txt; ansible-playbook script/install.yaml -i hosts_file.txt --fork 1 --user root --private-key ./txt.txt -e 'vpcid=${data.ibm_is_subnet.vnf_subnet.vpc} vpcurl=${var.rias_api_url} zone=${data.ibm_is_subnet.vnf_subnet.zone} apikey=${var.apikey} mgmtip1=${var.mgmt_ip1} extip1=${var.ext_ip1} mgmtip2=${var.mgmt_ip2} extip2=${var.ext_ip2} ipaddress=${ibm_is_instance.ubuntu_vsi.primary_network_interface[0].primary_ip.0.address}} ha1pwd=${var.ha_password1} ha2pwd=${var.ha_password2}'"
   }
 }
